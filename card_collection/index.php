@@ -46,20 +46,9 @@ $random_cards = fetchRandomCards($pdo, $user_id);
     </div>
 
     <h2>Your Full Pokémon Card Collection</h2>
-    <div class="cards-container">
-        <?php foreach ($all_cards as $card): ?>
-            <div class="card">
-                <?php if (!empty($card['image_path'])): ?>
-                    <img src="<?= htmlspecialchars($card['image_path']) ?>" alt="<?= htmlspecialchars($card['name']) ?>">
-                <?php endif; ?>
-                <p><strong><?= htmlspecialchars($card['name']) ?></strong></p>
-                <p>Type: <?= htmlspecialchars($card['type']) ?></p>
-                <p>Quantity: <?= htmlspecialchars($card['qty']) ?></p>
-                <p>Holo: <?= $card['holo'] ? 'Yes' : 'No' ?></p>
-            </div>
-        <?php endforeach; ?>
-    </div>
-
+    <br>
+    <br>
+    <a href="all_cards.php" class="button">View all cards here!</a>
     <a href="insert_card.php">Add a New Card</a>
     <a href="logout.php">Logout</a>
 </body>
