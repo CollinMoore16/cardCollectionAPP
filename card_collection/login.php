@@ -3,15 +3,12 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Generate CSRF token if it doesn't exist
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-// Include database connection (with sanitize_input())
 require_once 'db_connection.php';
 
-// Security headers
 header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("X-XSS-Protection: 1; mode=block");
@@ -19,28 +16,23 @@ header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
 header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self';");
 header("Content-Security-Policy: frame-ancestors 'none';");
 
-// Initialize error message
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validate CSRF token
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         $error = "Invalid CSRF token.";
     } else {
-        // Sanitize user inputs using the function from db_connection.php
         $username = sanitize_input($_POST['username']);
         $password = sanitize_input($_POST['password']);
 
-        // Attempt to authenticate user
         try {
             $stmt = $pdo->prepare("SELECT * FROM users WHERE username = :username");
             $stmt->execute([':username' => $username]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($user && password_verify($password, $user['password'])) {
-                // Successful login
                 $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username']; // Add this line to set the username
+                $_SESSION['username'] = $user['username']; 
                 header("Location: index.php");
                 exit;
             } else {
@@ -68,7 +60,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <p style="color: red;"><?= htmlspecialchars($error, ENT_QUOTES, 'UTF-8') ?></p>
         <?php endif; ?>
         <form action="login.php" method="post">
-            <!-- Include CSRF token -->
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" required><br>
