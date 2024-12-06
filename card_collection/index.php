@@ -1,6 +1,20 @@
 <?php
-session_start();
-include 'db_connection.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+header("X-Frame-Options: SAMEORIGIN");
+header("X-Content-Type-Options: nosniff");
+header("X-XSS-Protection: 1; mode=block");
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self';");
+header("Content-Security-Policy: frame-ancestors 'none';");
+
+function sanitize_input($data) {
+    return htmlspecialchars(strip_tags(trim($data)));
+}
+require_once 'db_connection.php';
 include 'fetch_cards.php';
 
 if (!isset($_SESSION['user_id'])) {
@@ -9,7 +23,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$username = $_SESSION['username'];
+$username = $_SESSION['username'] ?? 'Guest';
 
 $all_cards = fetchAllCards($pdo, $user_id);
 $random_cards = fetchRandomCards($pdo, $user_id);

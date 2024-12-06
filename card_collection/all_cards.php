@@ -1,6 +1,18 @@
 <?php
-session_start();
-include 'db_connection.php';
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+header("X-Frame-Options: SAMEORIGIN");
+header("X-Content-Type-Options: nosniff");
+header("X-XSS-Protection: 1; mode=block");
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self';");
+header("Content-Security-Policy: frame-ancestors 'none';");
+
+function sanitize_input($data) {
+    return htmlspecialchars(strip_tags(trim($data)));
+}
+require_once 'db_connection.php';
 
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
@@ -10,13 +22,14 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 $username = $_SESSION['username'];
 
-$cards_per_page = 10; 
+$cards_per_page = 10;
 $current_page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($current_page - 1) * $cards_per_page;
 
 $total_cards_query = "SELECT COUNT(*) FROM pokemon_cards WHERE user_id = :user_id";
 $total_cards_stmt = $pdo->prepare($total_cards_query);
-$total_cards_stmt->execute([':user_id' => $user_id]);
+$total_cards_stmt->bindValue(':user_id', $user_id, PDO::PARAM_INT);
+$total_cards_stmt->execute();
 $total_cards = $total_cards_stmt->fetchColumn();
 
 $cards_query = "SELECT * FROM pokemon_cards WHERE user_id = :user_id LIMIT :limit OFFSET :offset";
@@ -44,11 +57,11 @@ $total_pages = ceil($total_cards / $cards_per_page);
         <?php foreach ($cards as $card): ?>
             <div class="card">
                 <?php if (!empty($card['image_path'])): ?>
-                    <img src="<?= htmlspecialchars($card['image_path']) ?>" alt="<?= htmlspecialchars($card['name']) ?>">
+                    <img src="<?= htmlspecialchars($card['image_path'], ENT_QUOTES, 'UTF-8') ?>" alt="<?= htmlspecialchars($card['name'], ENT_QUOTES, 'UTF-8') ?>">
                 <?php endif; ?>
-                <p><strong><?= htmlspecialchars($card['name']) ?></strong></p>
-                <p>Type: <?= htmlspecialchars($card['type']) ?></p>
-                <p>Quantity: <?= htmlspecialchars($card['qty']) ?></p>
+                <p><strong><?= htmlspecialchars($card['name'], ENT_QUOTES, 'UTF-8') ?></strong></p>
+                <p>Type: <?= htmlspecialchars($card['type'], ENT_QUOTES, 'UTF-8') ?></p>
+                <p>Quantity: <?= (int)$card['qty'] ?></p>
                 <p>Holo: <?= $card['holo'] ? 'Yes' : 'No' ?></p>
                 <p>Reverse Holo: <?= $card['reverse_holo'] ? 'Yes' : 'No' ?></p>
                 <p>Shadow: <?= $card['shadow'] ? 'Yes' : 'No' ?></p>
