@@ -17,10 +17,10 @@ header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("X-XSS-Protection: 1; mode=block");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
-header("Content-Security-Policy: frame-ancestors 'none';");
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; frame-ancestors 'none';");
 
 require_once 'db_connection.php';
+require_once 'log_activity.php'; 
 
 function sanitize_input($data) {
     return htmlspecialchars(strip_tags(trim($data)));
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $upload_dir = 'uploads/';
     $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
-    $max_file_size = 2 * 1024 * 1024; // 2 MB
+    $max_file_size = 2 * 1024 * 1024; 
     $error = '';
 
     if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
@@ -84,8 +84,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ]);
 
                         echo "Card inserted successfully!";
+
+                        $log_message = log_activity($user_id, "Inserted card: $name");
+                        echo $log_message;
+
                     } catch (PDOException $e) {
-                        $error = "Error inserting card: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
+                        echo "Error inserting card: " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
                     }
                 } else {
                     $error = "Failed to upload the image.";
@@ -97,6 +101,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="en">
