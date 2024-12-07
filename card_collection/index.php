@@ -36,6 +36,7 @@ $random_cards = fetchRandomCards($pdo, $user_id);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Pokémon Cards</title>
     <link rel="stylesheet" href="styles.css">
+    <a href="logout.php">Logout</a>
 </head>
 <body>
     <h1>Welcome, <?= htmlspecialchars($username) ?>!</h1>
@@ -58,12 +59,11 @@ $random_cards = fetchRandomCards($pdo, $user_id);
             <p>No cards available. Add some to your collection!</p>
         <?php endif; ?>
     </div>
-
-    <h2>Your Full Pokémon Card Collection</h2>
-    <br>
-    <br>
     <a href="all_cards.php" class="button">View all cards here!</a>
-    <a href="insert_card.php">Add a New Card</a>
-    <a href="logout.php">Logout</a>
+    <head>Welcome to card Management</head>
+    <div class="navigation">
+        <a href="insert_card.php">Add a New Card</a>
+        <a href="delete_card.php">Delete Card</a>
+    </div>
 </body>
 </html>
