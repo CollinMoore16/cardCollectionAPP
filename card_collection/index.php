@@ -1,5 +1,4 @@
 <?php
-
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
@@ -8,12 +7,8 @@ header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("X-XSS-Protection: 1; mode=block");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
-header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self';");
-header("Content-Security-Policy: frame-ancestors 'none';");
+header("Content-Security-Policy: default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; frame-ancestors 'none';");
 
-function sanitize_input($data) {
-    return htmlspecialchars(strip_tags(trim($data)));
-}
 require_once 'db_connection.php';
 include 'fetch_cards.php';
 
@@ -36,9 +31,9 @@ $random_cards = fetchRandomCards($pdo, $user_id);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Pokémon Cards</title>
     <link rel="stylesheet" href="styles.css">
-    <a href="logout.php">Logout</a>
 </head>
 <body>
+    <a href="logout.php">Logout</a>
     <h1>Welcome, <?= htmlspecialchars($username) ?>!</h1>
 
     <h2>5 Random Pokémon Cards</h2>
@@ -60,10 +55,58 @@ $random_cards = fetchRandomCards($pdo, $user_id);
         <?php endif; ?>
     </div>
     <a href="all_cards.php" class="button">View all cards here!</a>
-    <head>Welcome to card Management</head>
+    <h2>Welcome to Card Management</h2>
     <div class="navigation">
         <a href="insert_card.php">Add a New Card</a>
         <a href="delete_card.php">Delete Card</a>
     </div>
+
+    <h2>Chat with the Bot</h2>
+    <div class="chat-container">
+        <div id="chat" class="chat-box">
+            <p><em>Welcome! Type a message to start chatting with the bot.</em></p>
+        </div>
+        <form id="chat-form" class="input-area">
+            <input type="text" id="user-input" name="user_input" placeholder="Type your message..." required>
+            <button type="submit">Send</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('chat-form').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const userInput = document.getElementById('user-input').value.trim();
+            if (!userInput) {
+                alert('Please enter a valid message!');
+                return;
+            }
+
+            const chatBox = document.getElementById('chat');
+            chatBox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
+
+            const loadingMessage = document.createElement('p');
+            loadingMessage.textContent = 'Bot is typing...';
+            loadingMessage.id = 'loading';
+            chatBox.appendChild(loadingMessage);
+
+            try {
+                const response = await fetch('chatbot.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({ user_input: userInput })
+                });
+                const result = await response.json();
+                document.getElementById('loading').remove();
+                chatBox.innerHTML += `<p><strong>Bot:</strong> ${result.message}</p>`;
+            } catch (error) {
+                document.getElementById('loading').remove();
+                chatBox.innerHTML += `<p style="color:red;">Error: Unable to fetch a response.</p>`;
+            }
+
+            document.getElementById('user-input').value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+        });
+    </script>
 </body>
 </html>
