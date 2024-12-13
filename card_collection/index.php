@@ -98,14 +98,17 @@ $random_cards = fetchRandomCards($pdo, $user_id);
                 });
                 const result = await response.json();
                 document.getElementById('loading').remove();
-                chatBox.innerHTML += `<p><strong>Bot:</strong> ${result.message}</p>`;
+
+                const botMessage = document.createElement('p');
+                botMessage.innerHTML = `<strong>Bot:</strong> ${result.message}`;
+                chatBox.appendChild(botMessage);
             } catch (error) {
                 document.getElementById('loading').remove();
                 chatBox.innerHTML += `<p style="color:red;">Error: Unable to fetch a response.</p>`;
             }
 
-            document.getElementById('user-input').value = '';
-            chatBox.scrollTop = chatBox.scrollHeight;
+            document.getElementById('user-input').value = ''; 
+            chatBox.scrollTop = chatBox.scrollHeight; 
         });
     </script>
 </body>
